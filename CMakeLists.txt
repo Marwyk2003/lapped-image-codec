@@ -14,5 +14,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(stb)
 
 add_executable(imageDemo imageDemo.cpp)
+add_executable(lappedImageCodec main.cpp)
 
 target_include_directories(imageDemo PRIVATE ${stb_SOURCE_DIR})
