@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "transform1d.hpp"
+#include "transform2d.hpp"
 
 using namespace std;
 
@@ -109,8 +110,8 @@ void test2d() {
   cout << endl;
 }
 
-void testLOT() {
-    int N = 8*2;
+void testLT1d() {
+  int N = 8 * 2;
   vector<double> source(N);
   for (int i = 0; i < N; i++) {
     source[i] = rand() % 100;
@@ -126,10 +127,28 @@ void testLOT() {
   report(source, encoded, decoded);
 }
 
+void testLT2d() {
+  int N = 8 * 2;
+  vector<double> source(N * N);
+  for (int i = 0; i < N * N; i++) {
+    source[i] = rand() % 100;
+  }
+  int n = source.size();
+
+  vector<double> encoded(source);
+  encode2d(N, encoded.data(), N);
+
+  vector<double> decoded(encoded);
+  decode2d(N, decoded.data(), N);
+
+  report(source, encoded, decoded);
+}
+
 int main() {
-  test1d();
-  test2d();
-  testLOT();
+  // test1d();
+  // test2d();
+  // testLT1d();
+  testLT2d();
 
   return 0;
 }
