@@ -107,54 +107,54 @@ void idct4(int n, double *x) {
 } // namespace dct1d
 
 namespace dct2d {
-void dct2(int n, double **x) {
+void dct2(int n, double *x) {
   assertPow2(n);
 
   std::vector<double> row(n);
   for (int r = 0; r < n; ++r) {
     for (int c = 0; c < n; ++c) {
-      row[c] = x[r][c];
+      row[c] = x[r * n + c];
     }
     dct1d::dct2(n, row.data());
     for (int c = 0; c < n; ++c) {
-      x[r][c] = row[c];
+      x[r * n + c] = row[c];
     }
   }
 
   std::vector<double> col(n);
   for (int c = 0; c < n; ++c) {
     for (int r = 0; r < n; ++r) {
-      col[r] = x[r][c];
+      col[r] = x[r * n + c];
     }
     dct1d::dct2(n, col.data());
     for (int r = 0; r < n; ++r) {
-      x[r][c] = col[r];
+      x[r * n + c] = col[r];
     }
   }
 }
 
-void idct2(int n, double **x) {
+void idct2(int n, double *x) {
   assertPow2(n);
 
   std::vector<double> col(n);
   for (int c = 0; c < n; ++c) {
     for (int r = 0; r < n; ++r) {
-      col[r] = x[r][c];
+      col[r] = x[r * n + c];
     }
     dct1d::idct2(n, col.data());
     for (int r = 0; r < n; ++r) {
-      x[r][c] = col[r];
+      x[r * n + c] = col[r];
     }
   }
 
   std::vector<double> row(n);
   for (int r = 0; r < n; ++r) {
     for (int c = 0; c < n; ++c) {
-      row[c] = x[r][c];
+      row[c] = x[r * n + c];
     }
     dct1d::idct2(n, row.data());
     for (int c = 0; c < n; ++c) {
-      x[r][c] = row[c];
+      x[r * n + c] = row[c];
     }
   }
 }

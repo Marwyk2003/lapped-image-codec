@@ -1,0 +1,5 @@
+build/
+
+output/*
+!output/.gitkeep
+!output/quantized.png

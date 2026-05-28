@@ -1,3 +1,5 @@
+#pragma once
+
 #include "dct.hpp"
 
 void butterfly(int n, double *data) {
