@@ -15,5 +15,7 @@ FetchContent_MakeAvailable(stb)
 
 add_executable(imageDemo imageDemo.cpp)
 add_executable(lappedImageCodec main.cpp)
+add_executable(quantizationDemo quantizationDemo.cpp)
 
 target_include_directories(imageDemo PRIVATE ${stb_SOURCE_DIR})
+target_include_directories(quantizationDemo PRIVATE ${stb_SOURCE_DIR})

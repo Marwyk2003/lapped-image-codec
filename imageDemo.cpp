@@ -23,7 +23,7 @@ int main() {
   cout << "Image height: " << img.height << endl;
   cout << "Image channels: " << img.channels << endl;
 
-  int N = 16;
+  constexpr int N = 16;
   int blocksX = img.width / N;
   int blocksY = img.height / N;
 
@@ -43,11 +43,12 @@ int main() {
 
       vector<double> encoded(source);
       dct2d::dct2(N, encoded.data());
-      auto q = quantizateBlock(N, encoded.data(), N);
+      auto q =
+          Quantizer<N, Q16TiledFromQ8Base>::quantizateBlock(encoded.data());
       if (bx == 0 && by == 0) {
         print_matrix(N, q);
       }
-      auto dq = dequantizateBlock(N, q.data(), N);
+      auto dq = Quantizer<N, Q16TiledFromQ8Base>::dequantizateBlock(q.data());
       vector<double> decoded(dq);
       dct2d::idct2(N, decoded.data());
 
@@ -61,8 +62,8 @@ int main() {
     }
   }
 
-  stbi_write_png("output/quantized.png", img.width, img.height, 1, restored.data(),
-                 img.width);
+  stbi_write_png("output/quantized.png", img.width, img.height, 1,
+                 restored.data(), img.width);
 
   stbi_image_free(img.data);
 

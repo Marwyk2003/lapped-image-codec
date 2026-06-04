@@ -124,7 +124,7 @@ void testLT1d() {
 }
 
 void testQuantization2d() {
-  const int N = 8;
+  constexpr int N = 8;
 
   vector<double> source(N * N);
   for (int i = 0; i < N * N; ++i) {
@@ -139,12 +139,12 @@ void testQuantization2d() {
   dct2d::dct2(N, encoded.data());
 
   cout << "=================== QUANTIZED MATRIX ===================\n";
-  auto q = quantizateBlock(N, encoded.data(), N);
+  auto q = Quantizer<N, Q8Base>::quantizateBlock(encoded.data());
   print_matrix(N, q);
   cout << "\n";
 
   cout << "=================== UNQUANTIZED MATRIX ===================\n";
-  auto dq = dequantizateBlock(N, q.data(), N);
+  auto dq = Quantizer<N, Q8Base>::dequantizateBlock(q.data());
   print_matrix(N, dq);
   cout << "\n";
 
