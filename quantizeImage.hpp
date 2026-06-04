@@ -33,7 +33,7 @@ void quantizeImage(const char *inputPath, const char *outputPath) {
 
       std::vector<double> encoded(source);
       dct2d::dct2(N, encoded.data());
-      auto q = QZ::quantizateBlock(encoded.data());
+      auto q = QZ::quantizateBlock(encoded.data(), 100);
       auto dq = QZ::dequantizateBlock(q.data());
       std::vector<double> decoded(dq);
       dct2d::idct2(N, decoded.data());

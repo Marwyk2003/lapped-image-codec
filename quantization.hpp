@@ -130,26 +130,24 @@ struct Q16Pow2 {
   static constexpr Mat<N, int> Q = getPowerOf2<N>();
 };
 
-template <int N, class QProvider>
-  requires(QProvider::N == N)
-struct Quantizer {
-  static constexpr int blockSize = N;
-  static constexpr Mat<N, int> Q = QProvider::Q;
+template <class QProvider> struct Quantizer {
+  static constexpr int blockSize = QProvider::N;
+  static constexpr Mat<blockSize, int> Q = QProvider::Q;
 
   static constexpr int quantizeCoeff(double coeff, int y, int x) {
     double q = coeff / Q[y][x];
     return static_cast<int>(q >= 0 ? q + 0.5 : q - 0.5);
   }
 
-  static constexpr int threshold = 100; // TODO
-  static std::vector<int> quantizateBlock(const double *data) {
-    std::vector<int> result(N * N, 0);
-    for (int y = 0; y < N; ++y) {
-      for (int x = 0; x < N; ++x) {
-        int val = std::round(data[y * N + x] / Q[y][x]);
+  static std::vector<int> quantizateBlock(const double *data,
+                                          int threshold = 0) {
+    std::vector<int> result(blockSize * blockSize, 0);
+    for (int y = 0; y < blockSize; ++y) {
+      for (int x = 0; x < blockSize; ++x) {
+        int val = std::round(data[y * blockSize + x] / Q[y][x]);
         if (abs(val) >= threshold) {
           // TODO take top left into account instead of hardocding treshold
-          result[y * N + x] = val;
+          result[y * blockSize + x] = val;
         }
       }
     }
@@ -157,17 +155,18 @@ struct Quantizer {
   }
 
   static std::vector<double> dequantizateBlock(const int *data) {
-    std::vector<double> result(N * N);
-    for (int y = 0; y < N; ++y) {
-      for (int x = 0; x < N; ++x) {
-        result[y * N + x] = static_cast<double>(data[y * N + x]) * Q[y][x];
+    std::vector<double> result(blockSize * blockSize);
+    for (int y = 0; y < blockSize; ++y) {
+      for (int x = 0; x < blockSize; ++x) {
+        result[y * blockSize + x] =
+            static_cast<double>(data[y * blockSize + x]) * Q[y][x];
       }
     }
     return result;
   }
 };
 
-using Quantizer8Base = Quantizer<8, Q8Base>;
-using Quantizer16Tiled = Quantizer<16, Q16TiledFromQ8Base>;
-using Quantizer16Upscaled = Quantizer<16, Q16UpscaledFromQ8Base>;
-using Quantizer16Pow2 = Quantizer<16, Q16Pow2>;
+using Quantizer8Base = Quantizer<Q8Base>;
+using Quantizer16Tiled = Quantizer<Q16TiledFromQ8Base>;
+using Quantizer16Upscaled = Quantizer<Q16UpscaledFromQ8Base>;
+using Quantizer16Pow2 = Quantizer<Q16Pow2>;

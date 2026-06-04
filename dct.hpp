@@ -101,7 +101,7 @@ void dct4(int n, double *x) {
 void idct4(int n, double *x) {
   dct4(n, x);
   for (int i = 0; i < n; ++i) {
-    x[i] /= 2;
+    x[i] *= (2.0 / n);
   }
 }
 } // namespace dct1d

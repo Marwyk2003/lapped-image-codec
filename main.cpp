@@ -124,7 +124,7 @@ void testLT1d() {
 }
 
 void testQuantization2d() {
-  constexpr int N = 8;
+  constexpr int N = Quantizer8Base::blockSize;
 
   vector<double> source(N * N);
   for (int i = 0; i < N * N; ++i) {
@@ -138,13 +138,17 @@ void testQuantization2d() {
   vector<double> encoded(source);
   dct2d::dct2(N, encoded.data());
 
+  cout << "=================== DCT COEFFICIENTS ===================\n";
+  print_matrix(N, encoded);
+  cout << "\n";
+
   cout << "=================== QUANTIZED MATRIX ===================\n";
-  auto q = Quantizer<N, Q8Base>::quantizateBlock(encoded.data());
+  auto q = Quantizer8Base::quantizateBlock(encoded.data());
   print_matrix(N, q);
   cout << "\n";
 
   cout << "=================== UNQUANTIZED MATRIX ===================\n";
-  auto dq = Quantizer<N, Q8Base>::dequantizateBlock(q.data());
+  auto dq = Quantizer8Base::dequantizateBlock(q.data());
   print_matrix(N, dq);
   cout << "\n";
 
@@ -190,11 +194,11 @@ void testLT2d() {
 }
 
 int main() {
-  // test1d();
-  // test2d();
-  // testLT1d();
-  // testLT2d();
-  // testQuantization2d();
+  test1d();
+  test2d();
+  testLT1d();
+  testLT2d();
+  testQuantization2d();
 
   return 0;
 }

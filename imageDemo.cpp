@@ -23,7 +23,7 @@ int main() {
   cout << "Image height: " << img.height << endl;
   cout << "Image channels: " << img.channels << endl;
 
-  constexpr int N = 16;
+  constexpr int N = Quantizer16Tiled::blockSize;
   int blocksX = img.width / N;
   int blocksY = img.height / N;
 
@@ -43,12 +43,11 @@ int main() {
 
       vector<double> encoded(source);
       dct2d::dct2(N, encoded.data());
-      auto q =
-          Quantizer<N, Q16TiledFromQ8Base>::quantizateBlock(encoded.data());
+      auto q = Quantizer16Tiled::quantizateBlock(encoded.data(), 100);
       if (bx == 0 && by == 0) {
         print_matrix(N, q);
       }
-      auto dq = Quantizer<N, Q16TiledFromQ8Base>::dequantizateBlock(q.data());
+      auto dq = Quantizer16Tiled::dequantizateBlock(q.data());
       vector<double> decoded(dq);
       dct2d::idct2(N, decoded.data());
 
