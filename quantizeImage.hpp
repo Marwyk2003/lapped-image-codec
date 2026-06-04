@@ -3,6 +3,7 @@
 #include "dct.hpp"
 #include "imageReader.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <vector>
 
@@ -42,7 +43,8 @@ void quantizeImage(const char *inputPath, const char *outputPath) {
         for (int y = 0; y < N; ++y) {
           int yy = by * N + y;
           int xx = bx * N + x;
-          restored[yy * img.width + xx] = decoded[y * N + x];
+          restored[yy * img.width + xx] = static_cast<unsigned char>(
+              std::clamp(decoded[y * N + x], 0.0, 255.0));
         }
       }
     }

@@ -6,7 +6,7 @@
 
 template <int N, class T = int> using Mat = std::array<std::array<T, N>, N>;
 
-constexpr Mat<8, int> getBase8x8() {
+consteval Mat<8, int> getBase8x8() {
   return Mat<8, int>{{
       {{3, 5, 7, 9, 11, 13, 15, 17}},
       {{5, 7, 9, 11, 13, 15, 17, 19}},
@@ -20,7 +20,7 @@ constexpr Mat<8, int> getBase8x8() {
 }
 
 template <int N, int Factor, class T = int>
-constexpr Mat<N * Factor, T> tile(const Mat<N, T> &m) {
+consteval Mat<N * Factor, T> tile(const Mat<N, T> &m) {
   constexpr int dstN = N * Factor;
   Mat<dstN, T> result{};
   for (int y = 0; y < dstN; ++y) {
@@ -31,7 +31,7 @@ constexpr Mat<N * Factor, T> tile(const Mat<N, T> &m) {
   return result;
 }
 
-template <int N> constexpr Mat<N, int> zigzagRank() {
+template <int N> consteval Mat<N, int> zigzagRank() {
   Mat<N, int> rank{};
   int idx = 0;
   for (int sum = 0; sum < 2 * N - 1; ++sum) {
@@ -52,7 +52,7 @@ template <int N> constexpr Mat<N, int> zigzagRank() {
   return rank;
 }
 
-template <int N> constexpr int powerOf2FromRank(int r) {
+template <int N> consteval int powerOf2FromRank(int r) {
   if (r < 4)
     return 1;
   if (r < 9)
@@ -66,7 +66,7 @@ template <int N> constexpr int powerOf2FromRank(int r) {
   return 1 << shift;
 }
 
-template <int N> constexpr Mat<N, int> getPowerOf2() {
+template <int N> consteval Mat<N, int> getPowerOf2() {
   constexpr auto zz = zigzagRank<N>();
   Mat<N, int> result{};
   for (int y = 0; y < N; ++y) {
@@ -82,17 +82,19 @@ constexpr double interpolate(double a, double b, double p) {
 }
 
 template <int N, int Factor, class T = int>
-constexpr Mat<N * Factor, T> upsample(const Mat<N, T> &q) {
+consteval Mat<N * Factor, T> upsample(const Mat<N, T> &q) {
   constexpr int dstN = N * Factor;
   Mat<dstN, T> result{};
   for (int y = 0; y < dstN; ++y) {
     double py = y * static_cast<double>(N - 1) / (dstN - 1);
     int y0 = static_cast<int>(py);
+    py -= y0;
     int y1 = (y0 < N - 1) ? (y0 + 1) : (N - 1);
 
     for (int x = 0; x < dstN; ++x) {
       double px = x * static_cast<double>(N - 1) / (dstN - 1);
       int x0 = static_cast<int>(px);
+      px -= x0;
       int x1 = (x0 < N - 1) ? (x0 + 1) : (N - 1);
 
       double a = q[y0][x0];
@@ -134,18 +136,13 @@ template <class QProvider> struct Quantizer {
   static constexpr int blockSize = QProvider::N;
   static constexpr Mat<blockSize, int> Q = QProvider::Q;
 
-  static constexpr int quantizeCoeff(double coeff, int y, int x) {
-    double q = coeff / Q[y][x];
-    return static_cast<int>(q >= 0 ? q + 0.5 : q - 0.5);
-  }
-
   static std::vector<int> quantizateBlock(const double *data,
                                           int threshold = 0) {
     std::vector<int> result(blockSize * blockSize, 0);
     for (int y = 0; y < blockSize; ++y) {
       for (int x = 0; x < blockSize; ++x) {
         int val = std::round(data[y * blockSize + x] / Q[y][x]);
-        if (abs(val) >= threshold) {
+        if (std::abs(val) >= threshold) {
           // TODO take top left into account instead of hardocding treshold
           result[y * blockSize + x] = val;
         }
