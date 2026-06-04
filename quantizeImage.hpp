@@ -15,8 +15,8 @@ void quantizeImage(const char *inputPath, const char *outputPath) {
   std::cout << "Processing " << inputPath << " -> " << outputPath << "\n";
   std::cout << "  size: " << img.width << "x" << img.height << "\n";
 
-  int blocksX = img.width / N;
-  int blocksY = img.height / N;
+  int blocksX = (img.width + N - 1) / N;
+  int blocksY = (img.height + N - 1) / N;
 
   std::vector<unsigned char> restored(img.width * img.height, 0);
 
@@ -28,7 +28,9 @@ void quantizeImage(const char *inputPath, const char *outputPath) {
         for (int y = 0; y < N; ++y) {
           int yy = by * N + y;
           int xx = bx * N + x;
-          source[y * N + x] = img.data[yy * img.width + xx];
+          int cy = std::min(yy, img.height - 1);
+          int cx = std::min(xx, img.width - 1);
+          source[y * N + x] = img.data[cy * img.width + cx];
         }
       }
 
@@ -43,8 +45,10 @@ void quantizeImage(const char *inputPath, const char *outputPath) {
         for (int y = 0; y < N; ++y) {
           int yy = by * N + y;
           int xx = bx * N + x;
-          restored[yy * img.width + xx] = static_cast<unsigned char>(
-              std::clamp(decoded[y * N + x], 0.0, 255.0));
+          if (xx < img.width && yy < img.height) {
+            restored[yy * img.width + xx] = static_cast<unsigned char>(
+                std::clamp(decoded[y * N + x], 0.0, 255.0));
+          }
         }
       }
     }
