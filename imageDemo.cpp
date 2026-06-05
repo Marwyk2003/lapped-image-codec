@@ -61,10 +61,8 @@ int main() {
     }
   }
 
-  stbi_write_png("output/quantized.png", img.width, img.height, 1,
-                 restored.data(), img.width);
-
-  stbi_image_free(img.data);
+  saveGrayscaleImage("output/quantized.png", img.width, img.height,
+                     restored.data());
 
   return 0;
 }

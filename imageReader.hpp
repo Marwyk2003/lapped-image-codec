@@ -7,13 +7,38 @@
 
 #include <stdexcept>
 #include <string>
-#include <vector>
+#include <utility>
 
 struct Image {
-  unsigned char *data;
-  int width;
-  int height;
-  int channels;
+  unsigned char *data = nullptr;
+  int width = 0;
+  int height = 0;
+  int channels = 0;
+
+  ~Image() {
+    if (data)
+      stbi_image_free(data);
+  }
+
+  Image() = default;
+  Image(const Image &) = delete;
+  Image &operator=(const Image &) = delete;
+
+  Image(Image &&other) noexcept { *this = std::move(other); }
+
+  Image &operator=(Image &&other) noexcept {
+    if (this != &other) {
+      if (data)
+        stbi_image_free(data);
+      data = other.data;
+      width = other.width;
+      height = other.height;
+      channels = other.channels;
+      other.data = nullptr;
+      other.width = other.height = other.channels = 0;
+    }
+    return *this;
+  }
 };
 
 Image loadImage(const char *path) {
@@ -29,39 +54,9 @@ Image loadImage(const char *path) {
   return img;
 }
 
-struct Partition {
-  int blockSize;
-
-  int blocksX, blocksY;
-  int channels, strideBytes;
-
-  Image img;
-  std::vector<std::vector<unsigned char *>> data;
-
-  Partition(Image &image, int blockSize) : blockSize(blockSize), img(image) {
-    blocksX = img.width / blockSize;
-    blocksY = img.height / blockSize;
-    channels = img.channels;
-    strideBytes = img.width * img.channels;
-
-    data.resize(blocksY, std::vector<unsigned char *>(blocksX));
-    for (int by = 0; by < blocksY; ++by) {
-      for (int bx = 0; bx < blocksX; ++bx) {
-        int xx = bx * blockSize;
-        int yy = by * blockSize;
-        data[by][bx] = img.data + (yy * img.width + xx) * img.channels;
-      }
-    }
-  }
-};
-
-void savePartition(Partition &p, char *filename) {
-  for (int by = 0; by < p.blocksY; ++by) {
-    for (int bx = 0; bx < p.blocksX; ++bx) {
-      std::string filename = "output/blocks_" + std::to_string(by) + "_" +
-                             std::to_string(bx) + ".png";
-      stbi_write_png(filename.c_str(), p.blockSize, p.blockSize, p.channels,
-                     p.data[by][bx], p.strideBytes);
-    }
-  }
+void saveGrayscaleImage(const char *path, int width, int height,
+                        const unsigned char *pixels, int stride = 0) {
+  if (stride == 0)
+    stride = width;
+  stbi_write_png(path, width, height, 1, pixels, stride);
 }

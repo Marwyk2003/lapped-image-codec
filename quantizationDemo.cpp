@@ -1,5 +1,8 @@
+#include "metrics.hpp"
 #include "quantization.hpp"
 #include "quantizeImage.hpp"
+
+#include <iostream>
 
 template <int N, class T>
 consteval bool matricesEqual(const Mat<N, T> &a, const Mat<N, T> &b) {
@@ -42,6 +45,22 @@ static_assert(matricesEqual<4>(getPowerOf2<4>(), Mat<4, int>{{
                                                      {{1, 2, 8, 16}},
                                                      {{4, 4, 16, 32}},
                                                  }}));
+
+template <class QZ>
+void quantizeImage(const char *inputPath, const char *outputPath) {
+  std::cout << "Processing " << inputPath << " -> " << outputPath << "\n";
+
+  Image img = loadImage(inputPath);
+  std::vector<unsigned char> original(img.data,
+                                      img.data + img.width * img.height);
+
+  auto restored = quantizeGrayscale<QZ>(img);
+
+  std::cout << "  size: " << img.width << "x" << img.height << "\n";
+  std::cout << "  MSE: " << mse(original, restored) << "\n";
+
+  saveGrayscaleImage(outputPath, img.width, img.height, restored.data());
+}
 
 int main() {
   const char *input = "images/barbara.jpg";
