@@ -58,6 +58,10 @@ void quantizeImage(const char *inputPath, const char *outputPath) {
 
   std::cout << "  size: " << img.width << "x" << img.height << "\n";
   std::cout << "  MSE: " << mse(original, restored) << "\n";
+  std::cout << "  SSIMULACRA2: "
+            << zensim_ssimulacra2_grayscale(original, restored, img.width,
+                                            img.height)
+            << "\n";
 
   saveGrayscaleImage(outputPath, img.width, img.height, restored.data());
 }

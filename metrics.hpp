@@ -5,6 +5,10 @@
 #include <stdexcept>
 #include <vector>
 
+extern "C" int zensim_score_gray(const unsigned char *a, const unsigned char *b,
+                                 unsigned int width, unsigned int height,
+                                 double *out_score);
+
 double mse(const std::vector<unsigned char> &a,
            const std::vector<unsigned char> &b) {
   if (a.size() != b.size())
@@ -13,11 +17,31 @@ double mse(const std::vector<unsigned char> &a,
   if (a.empty())
     return 0.0;
 
-  const double sum = std::transform_reduce(
-      a.begin(), a.end(), b.begin(), 0.0, std::plus<>{},
-      [](unsigned char x, unsigned char y) {
-        const double d = static_cast<double>(x) - static_cast<double>(y);
-        return d * d;
-      });
+  const double sum =
+      std::transform_reduce(a.begin(), a.end(), b.begin(), 0.0, std::plus<>{},
+                            [](unsigned char x, unsigned char y) {
+                              const double d = x - y;
+                              return d * d;
+                            });
   return sum / a.size();
+}
+
+double zensim_ssimulacra2_grayscale(const std::vector<unsigned char> &a,
+                                    const std::vector<unsigned char> &b,
+                                    int width, int height) {
+  if (a.size() != b.size())
+    throw std::invalid_argument(
+        "zensim_ssimulacra2_grayscale: buffer sizes differ");
+
+  if (width * height != a.size()) {
+    throw std::invalid_argument(
+        "zensim_ssimulacra2_grayscale: width*height mismatch");
+  }
+
+  double score = 0.0;
+  const int rc = zensim_score_gray(a.data(), b.data(), width, height, &score);
+  if (rc != 0)
+    throw std::runtime_error("zensim_ssimulacra2_grayscale: metric failed");
+
+  return score;
 }

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.22)
 project(LappedImageCodec)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -13,9 +13,25 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(stb)
 
+FetchContent_Declare(
+  Corrosion
+  GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git
+  GIT_TAG        v0.6
+)
+FetchContent_MakeAvailable(Corrosion)
+
+corrosion_import_crate(
+  MANIFEST_PATH ${CMAKE_SOURCE_DIR}/third_party/zensim_ffi/Cargo.toml
+)
+
 add_executable(imageDemo imageDemo.cpp)
 add_executable(lappedImageCodec main.cpp)
 add_executable(quantizationDemo quantizationDemo.cpp)
 
 target_include_directories(imageDemo PRIVATE ${stb_SOURCE_DIR})
 target_include_directories(quantizationDemo PRIVATE ${stb_SOURCE_DIR})
+
+target_link_libraries(quantizationDemo PRIVATE zensim_ffi)
+if(UNIX)
+  target_link_libraries(quantizationDemo PRIVATE m pthread dl)
+endif()
