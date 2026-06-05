@@ -7,7 +7,7 @@
 
 using namespace std;
 
-template <typename T> void print_matrix(int N, const vector<T> &matrix) {
+template <typename T> void printMatrix(int N, const vector<T> &matrix) {
   cout << fixed << setprecision(1);
   for (int r = 0; r < N; ++r) {
     for (int c = 0; c < N; ++c) {
@@ -45,7 +45,7 @@ int main() {
       dct2d::dct2(N, encoded.data());
       auto q = Quantizer16Tiled::quantizateBlock(encoded.data(), 100);
       if (bx == 0 && by == 0) {
-        print_matrix(N, q);
+        printMatrix(N, q);
       }
       auto dq = Quantizer16Tiled::dequantizateBlock(q.data());
       vector<double> decoded(dq);

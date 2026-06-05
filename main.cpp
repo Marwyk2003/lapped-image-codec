@@ -54,7 +54,7 @@ void test1d() {
   testDct4(source);
 }
 
-template <typename T> void print_matrix(int N, const vector<T> &matrix) {
+template <typename T> void printMatrix(int N, const vector<T> &matrix) {
   cout << fixed << setprecision(1);
   for (int r = 0; r < N; ++r) {
     for (int c = 0; c < N; ++c) {
@@ -73,19 +73,19 @@ void test2d() {
   }
 
   cout << "=================== ORIGINAL 8x8 IMAGE BLOCK ===================\n";
-  print_matrix(N, source);
+  printMatrix(N, source);
   cout << "\n";
 
   cout << "==================== 2D DCT COEFFICIENTS =====================\n";
   vector<double> encoded(source);
   dct2d::dct2(N, encoded.data());
-  print_matrix(N, encoded);
+  printMatrix(N, encoded);
   cout << "\n";
 
   cout << "=================== RECOVERED IMAGE (IDCT) ===================\n";
   vector<double> decoded(encoded);
   dct2d::idct2(N, decoded.data());
-  print_matrix(N, decoded);
+  printMatrix(N, decoded);
   cout << "\n";
 
   double max_error = 0.0;
@@ -132,30 +132,30 @@ void testQuantization2d() {
   }
 
   cout << "=================== ORIGINAL 8x8 IMAGE BLOCK ===================\n";
-  print_matrix(N, source);
+  printMatrix(N, source);
   cout << "\n";
 
   vector<double> encoded(source);
   dct2d::dct2(N, encoded.data());
 
   cout << "=================== DCT COEFFICIENTS ===================\n";
-  print_matrix(N, encoded);
+  printMatrix(N, encoded);
   cout << "\n";
 
   cout << "=================== QUANTIZED MATRIX ===================\n";
   auto q = Quantizer8Base::quantizateBlock(encoded.data());
-  print_matrix(N, q);
+  printMatrix(N, q);
   cout << "\n";
 
   cout << "=================== UNQUANTIZED MATRIX ===================\n";
   auto dq = Quantizer8Base::dequantizateBlock(q.data());
-  print_matrix(N, dq);
+  printMatrix(N, dq);
   cout << "\n";
 
   cout << "=================== RECOVERED IMAGE ===================\n";
   vector<double> decoded(dq);
   dct2d::idct2(N, decoded.data());
-  print_matrix(N, decoded);
+  printMatrix(N, decoded);
   cout << "\n";
 
   double max_error = 0.0;
