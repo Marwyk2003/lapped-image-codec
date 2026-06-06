@@ -2,7 +2,7 @@
 
 ## Deps
 
-- **CMake** 3.22+
+- **CMake**
 - **C++20** compiler
 - **Rust**
 

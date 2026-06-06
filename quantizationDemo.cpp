@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+// tests of quantization matrices
 template <int N, class T>
 consteval bool matricesEqual(const Mat<N, T> &a, const Mat<N, T> &b) {
   for (int y = 0; y < N; ++y) {
@@ -45,6 +46,8 @@ static_assert(matricesEqual<4>(getPowerOf2<4>(), Mat<4, int>{{
                                                      {{1, 2, 8, 16}},
                                                      {{4, 4, 16, 32}},
                                                  }}));
+
+// end of tests
 
 template <class QZ>
 void quantizeImage(const char *inputPath, const char *outputPath, bool lapped) {
