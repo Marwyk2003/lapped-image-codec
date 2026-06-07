@@ -10,15 +10,10 @@
 #include <utility>
 
 struct Image {
-  unsigned char *data = nullptr;
+  std::vector<std::vector<unsigned char>> channels;
   int width = 0;
   int height = 0;
-  int channels = 0;
 
-  ~Image() {
-    if (data)
-      stbi_image_free(data);
-  }
 
   Image() = default;
   Image(const Image &) = delete;
@@ -28,14 +23,11 @@ struct Image {
 
   Image &operator=(Image &&other) noexcept {
     if (this != &other) {
-      if (data)
-        stbi_image_free(data);
-      data = other.data;
       width = other.width;
       height = other.height;
-      channels = other.channels;
-      other.data = nullptr;
-      other.width = other.height = other.channels = 0;
+      other.width = other.height;
+      channels = std::move(other.channels);
+      other.channels.clear();
     }
     return *this;
   }
@@ -43,20 +35,37 @@ struct Image {
 
 Image loadImage(const char *path) {
   Image img;
-  img.data = stbi_load(path, &img.width, &img.height, &img.channels, 1);
-  img.channels = 1;
+  int channels;
+  auto *data = stbi_load(path, &img.width, &img.height, &channels, 0);
 
-  if (img.data == nullptr) {
+  if (data == nullptr) {
     throw std::runtime_error("Error: Failed to load image. " +
                              std::string(stbi_failure_reason()));
   }
 
+  img.channels.resize(channels);
+  for (int c = 0; c < channels; ++c) {
+    img.channels[c].resize(img.width * img.height);
+    for (int i = 0; i < img.width * img.height; ++i) {
+      img.channels[c][i] = data[channels * i + c];
+    }
+  }
+
+  stbi_image_free(data);
+
   return img;
 }
 
-void saveGrayscaleImage(const char *path, int width, int height,
-                        const unsigned char *pixels, int stride = 0) {
-  if (stride == 0)
-    stride = width;
-  stbi_write_png(path, width, height, 1, pixels, stride);
+void saveGrayscaleImage(const char *path, Image &img) {
+  int channels = img.channels.size();
+
+  std::vector<unsigned char> flattend(img.width * img.height * channels, 0);
+  for (int c = 0; c < channels; ++c) {
+    for (int i = 0; i < img.width * img.height; ++i) {
+      flattend[i * channels + c] = img.channels[c][i];
+    }
+  }
+
+  stbi_write_png(path, img.width, img.height, channels, flattend.data(),
+                 img.width * channels);
 }

@@ -51,23 +51,24 @@ void quantizeImage(const char *inputPath, const char *outputPath, bool lapped) {
   std::cout << "Processing " << inputPath << " -> " << outputPath << "\n";
 
   Image img = loadImage(inputPath);
-  std::vector<unsigned char> original(img.data,
-                                      img.data + img.width * img.height);
+  for (int i = 0; i < img.channels.size(); ++i) {
+    auto &channel = img.channels[i];
+    std::vector<unsigned char> original(channel.begin(), channel.end());
+    channel = quantizeChannel<QZ>(img, i, lapped);
 
-  auto restored = quantizeGrayscale<QZ>(img, lapped);
+    std::cout << "  size: " << img.width << "x" << img.height << "\n";
+    std::cout << "  MSE: " << mse(original, channel) << "\n";
+    std::cout << "  SSIMULACRA2: "
+              << zensim_ssimulacra2_grayscale(original, channel, img.width,
+                                              img.height)
+              << "\n";
+  }
 
-  std::cout << "  size: " << img.width << "x" << img.height << "\n";
-  std::cout << "  MSE: " << mse(original, restored) << "\n";
-  std::cout << "  SSIMULACRA2: "
-            << zensim_ssimulacra2_grayscale(original, restored, img.width,
-                                            img.height)
-            << "\n";
-
-  saveGrayscaleImage(outputPath, img.width, img.height, restored.data());
+  saveGrayscaleImage(outputPath, img);
 }
 
 int main() {
-  const char *input = "images/barbara.jpg";
+  const char *input = "images/panda.jpg";
 
   quantizeImage<Quantizer8Base>(input, "output/quantized_block.png", false);
   std::cout << "---------------------------------" << "\n";

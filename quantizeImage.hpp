@@ -35,10 +35,11 @@ void setBlock(std::vector<T> &data, int bx, int by, int N, int width,
 }
 
 template <class QZ>
-std::vector<unsigned char> quantizeGrayscale(const Image &img, bool lapped) {
+std::vector<unsigned char> quantizeChannel(const Image &img, int channel, bool lapped) {
   constexpr int N = QZ::blockSize;
   int qscale = lapped ? 7 : 10; // TODO: hardcoded to match compression rate
 
+  auto data = img.channels[channel];
   std::vector<unsigned char> restored(img.width * img.height, 0);
 
   int blocksX = (img.width + N - 1) / N;
@@ -56,7 +57,7 @@ std::vector<unsigned char> quantizeGrayscale(const Image &img, bool lapped) {
           int xx = bx * N + x;
           int cy = std::min(yy, img.height - 1);
           int cx = std::min(xx, img.width - 1);
-          source[yy * width + xx] = (int)img.data[cy * img.width + cx] - 128;
+          source[yy * width + xx] = (int)data[cy * img.width + cx] - 128;
         }
       }
     }
