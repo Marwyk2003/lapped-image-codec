@@ -7,7 +7,7 @@
 #include <limits>
 #include <vector>
 
-constexpr double sharpness = 2.0;
+constexpr double sharpness = 1.0;
 
 template <class QZ>
 void normalizedErrorDemo(const char *inputPath, const char *reconstructedPath,
