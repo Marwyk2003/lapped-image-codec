@@ -8,12 +8,12 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 struct Image {
   std::vector<std::vector<unsigned char>> channels;
   int width = 0;
   int height = 0;
-
 
   Image() = default;
   Image(const Image &) = delete;
