@@ -36,9 +36,8 @@ void setBlock(std::vector<T> &data, int bx, int by, int N, int width,
 
 template <class QZ>
 std::vector<unsigned char> quantizeChannel(const Image &img, int channel,
-                                           bool lapped) {
+                                           bool lapped, int qscale) {
   constexpr int N = QZ::blockSize;
-  int qscale = lapped ? 7 : 10; // TODO: hardcoded to match compression rate
 
   auto data = img.channels[channel];
   std::vector<unsigned char> restored(img.width * img.height, 0);

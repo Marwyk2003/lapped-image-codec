@@ -56,7 +56,7 @@ Image loadImage(const char *path) {
   return img;
 }
 
-void saveGrayscaleImage(const char *path, Image &img) {
+void saveImage(const char *path, const Image &img) {
   int channels = img.channels.size();
 
   std::vector<unsigned char> flattend(img.width * img.height * channels, 0);
