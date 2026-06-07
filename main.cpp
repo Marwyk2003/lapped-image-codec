@@ -186,10 +186,10 @@ void testLT2d() {
   int n = source.size();
 
   vector<double> encoded(source);
-  encode2d(N, N, M, encoded.data());
+  prefilter2d(N, N, M, encoded.data());
 
   vector<double> decoded(encoded);
-  decode2d(N, N, M, decoded.data());
+  postfliter2d(N, N, M, decoded.data());
 
   report(source, encoded, decoded);
 }

@@ -7,8 +7,6 @@
 
 template <int N, class T = int> using Mat = std::array<std::array<T, N>, N>;
 
-double constexpr QSCALE = 10;
-
 consteval Mat<8, int> getBase8x8() {
   return Mat<8, int>{{{3, 5, 7, 9, 11, 13, 15, 17},
                       {5, 7, 9, 11, 13, 15, 17, 19},
@@ -137,23 +135,23 @@ template <class QProvider> struct Quantizer {
   static constexpr int blockSize = QProvider::N;
   static constexpr Mat<blockSize, int> Q = QProvider::Q;
 
-  static std::vector<int> quantizateBlock(const double *data) {
+  static std::vector<int> quantizateBlock(const double *data, int qscale=1) {
     std::vector<int> result(blockSize * blockSize, 0);
     for (int y = 0; y < blockSize; ++y) {
       for (int x = 0; x < blockSize; ++x) {
-        int val = std::round(data[y * blockSize + x] / (Q[y][x] * QSCALE));
+        int val = std::round(data[y * blockSize + x] / (Q[y][x] * qscale));
         result[y * blockSize + x] = val;
       }
     }
     return result;
   }
 
-  static std::vector<double> dequantizateBlock(const int *data) {
+  static std::vector<double> dequantizateBlock(const int *data, int qscale=1) {
     std::vector<double> result(blockSize * blockSize);
     for (int y = 0; y < blockSize; ++y) {
       for (int x = 0; x < blockSize; ++x) {
         result[y * blockSize + x] =
-            static_cast<double>(data[y * blockSize + x]) * (Q[y][x] * QSCALE);
+            static_cast<double>(data[y * blockSize + x]) * (Q[y][x] * qscale);
       }
     }
     return result;

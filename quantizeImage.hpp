@@ -35,8 +35,9 @@ void setBlock(std::vector<T> &data, int bx, int by, int N, int width,
 }
 
 template <class QZ>
-std::vector<unsigned char> quantizeGrayscale(const Image &img, bool laped) {
+std::vector<unsigned char> quantizeGrayscale(const Image &img, bool lapped) {
   constexpr int N = QZ::blockSize;
+  int qscale = lapped ? 7 : 10; // TODO: hardcoded to match compression rate
 
   std::vector<unsigned char> restored(img.width * img.height, 0);
 
@@ -62,15 +63,14 @@ std::vector<unsigned char> quantizeGrayscale(const Image &img, bool laped) {
   }
 
   std::vector<double> encoded(source);
-  if (laped) {
-    encode2d(width, height, N, encoded.data());
-  } else {
-    for (int by = 0; by < blocksY; ++by) {
-      for (int bx = 0; bx < blocksX; ++bx) {
-        auto b = getBlock(encoded, bx, by, N, width);
-        dct2d::dct2(N, b.data());
-        setBlock(encoded, bx, by, N, width, b);
-      }
+  if (lapped) {
+    prefilter2d(width, height, N, encoded.data());
+  }
+  for (int by = 0; by < blocksY; ++by) {
+    for (int bx = 0; bx < blocksX; ++bx) {
+      auto b = getBlock(encoded, bx, by, N, width);
+      dct2d::dct2(N, b.data());
+      setBlock(encoded, bx, by, N, width, b);
     }
   }
 
@@ -78,31 +78,38 @@ std::vector<unsigned char> quantizeGrayscale(const Image &img, bool laped) {
   for (int by = 0; by < blocksY; ++by) {
     for (int bx = 0; bx < blocksX; ++bx) {
       auto b1 = getBlock(encoded, bx, by, N, width);
-      auto b2 = QZ::quantizateBlock(b1.data());
+      auto b2 = QZ::quantizateBlock(b1.data(), qscale);
       setBlock(q, bx, by, N, width, b2);
     }
   }
+
+  int count = 0;
+  for (int y = 0; y < height; ++y)
+    for (int x = 0; x < width; ++x)
+      if (q[y * width + x] != 0)
+        ++count;
+  std::cout << "Non-zero coefficients: "
+            << ((double)count / (width * height)) * 100 << "%" << std::endl;
 
   std::vector<double> dq(width * height);
   for (int by = 0; by < blocksY; ++by) {
     for (int bx = 0; bx < blocksX; ++bx) {
       auto b1 = getBlock(q, bx, by, N, width);
-      auto b2 = QZ::dequantizateBlock(b1.data());
+      auto b2 = QZ::dequantizateBlock(b1.data(), qscale);
       setBlock(dq, bx, by, N, width, b2);
     }
   }
 
   std::vector<double> decoded(dq);
-  if (laped) {
-    decode2d(width, height, N, decoded.data());
-  } else {
-    for (int by = 0; by < blocksY; ++by) {
-      for (int bx = 0; bx < blocksX; ++bx) {
-        auto b = getBlock(decoded, bx, by, N, width);
-        dct2d::idct2(N, b.data());
-        setBlock(decoded, bx, by, N, width, b);
-      }
+  for (int by = 0; by < blocksY; ++by) {
+    for (int bx = 0; bx < blocksX; ++bx) {
+      auto b = getBlock(decoded, bx, by, N, width);
+      dct2d::idct2(N, b.data());
+      setBlock(decoded, bx, by, N, width, b);
     }
+  }
+  if (lapped) {
+    postfliter2d(width, height, N, decoded.data());
   }
 
   for (int by = 0; by < blocksY; ++by) {
