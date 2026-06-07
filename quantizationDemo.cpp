@@ -47,14 +47,14 @@ static_assert(matricesEqual<4>(getPowerOf2<4>(), Mat<4, int>{{
                                                  }}));
 
 template <class QZ>
-void quantizeImage(const char *inputPath, const char *outputPath) {
+void quantizeImage(const char *inputPath, const char *outputPath, bool lapped) {
   std::cout << "Processing " << inputPath << " -> " << outputPath << "\n";
 
   Image img = loadImage(inputPath);
   std::vector<unsigned char> original(img.data,
                                       img.data + img.width * img.height);
 
-  auto restored = quantizeGrayscale<QZ>(img);
+  auto restored = quantizeGrayscale<QZ>(img, lapped);
 
   std::cout << "  size: " << img.width << "x" << img.height << "\n";
   std::cout << "  MSE: " << mse(original, restored) << "\n";
@@ -69,9 +69,9 @@ void quantizeImage(const char *inputPath, const char *outputPath) {
 int main() {
   const char *input = "images/barbara.jpg";
 
-  quantizeImage<Quantizer16Tiled>(input, "output/quantized_tiled.png");
-  quantizeImage<Quantizer16Pow2>(input, "output/quantized_pow2.png");
-  quantizeImage<Quantizer16Upscaled>(input, "output/quantized_upscaled.png");
+  quantizeImage<Quantizer8Base>(input, "output/quantized_block.png", false);
+  std::cout << "---------------------------------" << "\n";
+  quantizeImage<Quantizer8Base>(input, "output/quantized_lapped.png", true);
 
   return 0;
 }

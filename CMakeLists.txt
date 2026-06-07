@@ -24,11 +24,8 @@ corrosion_import_crate(
   MANIFEST_PATH ${CMAKE_SOURCE_DIR}/third_party/zensim_ffi/Cargo.toml
 )
 
-add_executable(imageDemo imageDemo.cpp)
-add_executable(lappedImageCodec main.cpp)
 add_executable(quantizationDemo quantizationDemo.cpp)
 
-target_include_directories(imageDemo PRIVATE ${stb_SOURCE_DIR})
 target_include_directories(quantizationDemo PRIVATE ${stb_SOURCE_DIR})
 
 target_link_libraries(quantizationDemo PRIVATE zensim_ffi)

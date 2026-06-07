@@ -2,50 +2,52 @@
 
 #include "transform1d.hpp"
 
-void encode2d(int n, double *data, int stride) {
-  std::vector<double> row(n);
-  for (int r = 0; r < n; ++r) {
-    for (int c = 0; c < n; ++c) {
-      row[c] = data[r * stride + c];
+void encode2d(int w, int h, int blockSize, double *data) {
+  std::vector<double> row(w);
+  for (int r = 0; r < h; ++r) {
+    for (int c = 0; c < w; ++c) {
+      row[c] = data[r * w + c];
     }
-    encode1d(n, row.data());
-    for (int c = 0; c < n; ++c) {
-      data[r * stride + c] = row[c];
+    encode1d(w, blockSize, row.data());
+    for (int c = 0; c < w; ++c) {
+      data[r * w + c] = row[c];
     }
   }
 
-  std::vector<double> col(n);
-  for (int c = 0; c < n; ++c) {
-    for (int r = 0; r < n; ++r) {
-      col[r] = data[r * stride + c];
+  std::vector<double> col(h);
+  for (int c = 0; c < w; ++c) {
+    for (int r = 0; r < h; ++r) {
+      col[r] = data[r * w + c];
     }
-    encode1d(n, col.data());
-    for (int r = 0; r < n; ++r) {
-      data[r * stride + c] = col[r];
+    encode1d(h, blockSize, col.data());
+    for (int r = 0; r < h; ++r) {
+      data[r * w + c] = col[r];
     }
   }
 }
 
-void decode2d(int n, double *data, int stride) {
-  std::vector<double> col(n);
-  for (int c = 0; c < n; ++c) {
-    for (int r = 0; r < n; ++r) {
-      col[r] = data[r * stride + c];
+void decode2d(int w, int h, int blockSize, double *data) {
+  {
+    std::vector<double> col(h);
+    for (int c = 0; c < w; ++c) {
+      for (int r = 0; r < h; ++r) {
+        col[r] = data[r * w + c];
+      }
+      decode1d(h, blockSize, col.data());
+      for (int r = 0; r < h; ++r) {
+        data[r * w + c] = col[r];
+      }
     }
-    decode1d(n, col.data());
-    for (int r = 0; r < n; ++r) {
-      data[r * stride + c] = col[r];
-    }
-  }
 
-  std::vector<double> row(n);
-  for (int r = 0; r < n; ++r) {
-    for (int c = 0; c < n; ++c) {
-      row[c] = data[r * stride + c];
-    }
-    decode1d(n, row.data());
-    for (int c = 0; c < n; ++c) {
-      data[r * stride + c] = row[c];
+    std::vector<double> row(w);
+    for (int r = 0; r < h; ++r) {
+      for (int c = 0; c < w; ++c) {
+        row[c] = data[r * w + c];
+      }
+      decode1d(w, blockSize, row.data());
+      for (int c = 0; c < w; ++c) {
+        data[r * w + c] = row[c];
+      }
     }
   }
 }

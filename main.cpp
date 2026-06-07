@@ -177,7 +177,8 @@ void testQuantization2d() {
 }
 
 void testLT2d() {
-  int N = 8 * 2;
+  int M = 8;
+  int N = 2 * M;
   vector<double> source(N * N);
   for (int i = 0; i < N * N; i++) {
     source[i] = rand() % 100;
@@ -185,10 +186,10 @@ void testLT2d() {
   int n = source.size();
 
   vector<double> encoded(source);
-  encode2d(N, encoded.data(), N);
+  encode2d(N, N, M, encoded.data());
 
   vector<double> decoded(encoded);
-  decode2d(N, decoded.data(), N);
+  decode2d(N, N, M, decoded.data());
 
   report(source, encoded, decoded);
 }

@@ -2,21 +2,22 @@
 
 #include <array>
 #include <cmath>
+#include <iostream>
 #include <vector>
 
 template <int N, class T = int> using Mat = std::array<std::array<T, N>, N>;
 
+double constexpr QSCALE = 10;
+
 consteval Mat<8, int> getBase8x8() {
-  return Mat<8, int>{{
-      {{3, 5, 7, 9, 11, 13, 15, 17}},
-      {{5, 7, 9, 11, 13, 15, 17, 19}},
-      {{7, 9, 11, 13, 15, 17, 19, 21}},
-      {{9, 11, 13, 15, 17, 19, 21, 23}},
-      {{11, 13, 15, 17, 19, 21, 23, 25}},
-      {{13, 15, 17, 19, 21, 23, 25, 27}},
-      {{15, 17, 19, 21, 23, 25, 27, 29}},
-      {{17, 19, 21, 23, 25, 27, 29, 31}},
-  }};
+  return Mat<8, int>{{{3, 5, 7, 9, 11, 13, 15, 17},
+                      {5, 7, 9, 11, 13, 15, 17, 19},
+                      {7, 9, 11, 13, 15, 17, 19, 21},
+                      {9, 11, 13, 15, 17, 19, 21, 23},
+                      {11, 13, 15, 17, 19, 21, 23, 25},
+                      {13, 15, 17, 19, 21, 23, 25, 27},
+                      {15, 17, 19, 21, 23, 25, 27, 29},
+                      {17, 19, 21, 23, 25, 27, 29, 31}}};
 }
 
 template <int N, int Factor, class T = int>
@@ -136,16 +137,12 @@ template <class QProvider> struct Quantizer {
   static constexpr int blockSize = QProvider::N;
   static constexpr Mat<blockSize, int> Q = QProvider::Q;
 
-  static std::vector<int> quantizateBlock(const double *data,
-                                          int threshold = 0) {
+  static std::vector<int> quantizateBlock(const double *data) {
     std::vector<int> result(blockSize * blockSize, 0);
     for (int y = 0; y < blockSize; ++y) {
       for (int x = 0; x < blockSize; ++x) {
-        int val = std::round(data[y * blockSize + x] / Q[y][x]);
-        if (std::abs(val) >= threshold) {
-          // TODO take top left into account instead of hardocding treshold
-          result[y * blockSize + x] = val;
-        }
+        int val = std::round(data[y * blockSize + x] / (Q[y][x] * QSCALE));
+        result[y * blockSize + x] = val;
       }
     }
     return result;
@@ -156,7 +153,7 @@ template <class QProvider> struct Quantizer {
     for (int y = 0; y < blockSize; ++y) {
       for (int x = 0; x < blockSize; ++x) {
         result[y * blockSize + x] =
-            static_cast<double>(data[y * blockSize + x]) * Q[y][x];
+            static_cast<double>(data[y * blockSize + x]) * (Q[y][x] * QSCALE);
       }
     }
     return result;

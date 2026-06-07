@@ -22,9 +22,7 @@ void div(int n, double *data, int x) {
   }
 }
 
-void encode1d(int n, double *data) {
-  int m = 8;
-
+void encode1d(int n, int m, double *data) {
   for (int i = 0; i < n / m - 1; i++) {
     double *block = data + m / 2 + i * m;
     double *lower = block + m / 2;
@@ -50,9 +48,7 @@ void encode1d(int n, double *data) {
   }
 }
 
-void decode1d(int n, double *data) {
-  int m = 8;
-
+void decode1d(int n, int m, double *data) {
   for (int i = 0; i < n / m; i++) {
     double *block = data + i * m;
     dct1d::idct2(m, block);

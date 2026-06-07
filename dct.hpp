@@ -1,3 +1,5 @@
+#pragma once
+
 #include <complex>
 #include <vector>
 
@@ -52,19 +54,26 @@ void dct2(int n, double *x) {
 
   fft(n, y.data());
 
+  double invSqrtN = 1.0 / std::sqrt(n);
+  double invSqrt2N = std::sqrt(2.0 / n);
+
   for (int i = 0; i < n; ++i) {
     auto t = std::polar(1.0, -PI * i / (2.0 * n));
-    x[i] = 2.0 * (y[i] * t).real();
+    double scale = (i == 0) ? invSqrtN : invSqrt2N;
+    x[i] = 2.0 * (y[i] * t).real() * scale;
   }
 }
 
 void idct2(int n, double *x) {
   assertPow2(n);
 
+  double invSqrtN = 1.0 / std::sqrt(n);
+  double invSqrt2N = std::sqrt(2.0 / n);
+
   std::vector<std::complex<double>> y(n);
-  y[0] = 0.5 * x[0];
+  y[0] = 0.5 * (x[0] / invSqrtN);
   for (int i = 1; i < n; ++i) {
-    std::complex<double> c(x[i], -x[n - i]);
+    std::complex<double> c(x[i] / invSqrt2N, -x[n - i] / invSqrt2N);
     std::complex<double> t = std::polar(1.0, PI * i / (2.0 * n));
     y[i] = 0.5 * c * t;
   }
@@ -89,20 +98,19 @@ void dct4(int n, double *x) {
 
   fft(n / 2, y.data());
 
+  double scale = std::sqrt(2.0 / n);
+
   for (int i = 0; i < n / 2; ++i) {
     std::complex<double> t = std::polar(1.0, -PI * (i + 0.25) / n);
     std::complex<double> yi = y[i] * t;
 
-    x[2 * i] = yi.real();
-    x[n - 1 - 2 * i] = -yi.imag();
+    x[2 * i] = yi.real() * scale;
+    x[n - 1 - 2 * i] = -yi.imag() * scale;
   }
 }
 
 void idct4(int n, double *x) {
   dct4(n, x);
-  for (int i = 0; i < n; ++i) {
-    x[i] *= (2.0 / n);
-  }
 }
 } // namespace dct1d
 
