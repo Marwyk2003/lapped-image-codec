@@ -15,7 +15,7 @@ computeNormalizedError(const std::vector<unsigned char> &original,
                        const std::vector<unsigned char> &restored, int width,
                        int height) {
   constexpr int N = QZ::blockSize;
-  std::vector<unsigned char> normalizedError(width * height, 0.0);
+  std::vector<unsigned char> normalizedError(width * height, 0);
 
   int blocksX = (width + N - 1) / N;
   int blocksY = (height + N - 1) / N;
