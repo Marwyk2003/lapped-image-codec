@@ -5,13 +5,13 @@
 #include "transform2d.hpp"
 
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <vector>
 
 template <typename T>
-std::vector<T> getBlock(const std::vector<T> &data, int bx, int by, int N,
-                        int width) {
-  std::vector<T> block(N * N);
+void getBlock(const std::vector<T> &data, int bx, int by, int N, int width,
+              T *block) {
   for (int i = 0; i < N; ++i) {
     for (int j = 0; j < N; ++j) {
       int xx = bx * N + j;
@@ -19,12 +19,11 @@ std::vector<T> getBlock(const std::vector<T> &data, int bx, int by, int N,
       block[i * N + j] = data[yy * width + xx];
     }
   }
-  return block;
 }
 
 template <typename T>
 void setBlock(std::vector<T> &data, int bx, int by, int N, int width,
-              const std::vector<T> &block) {
+              const T *block) {
   for (int i = 0; i < N; ++i) {
     for (int j = 0; j < N; ++j) {
       int xx = bx * N + j;
@@ -67,20 +66,22 @@ std::vector<unsigned char> quantizeChannel(const Image &img, int channel,
   if (lapped) {
     prefilter2d(width, height, N, encoded.data());
   }
+  std::array<double, QZ::blockSize * QZ::blockSize> block{};
   for (int by = 0; by < blocksY; ++by) {
     for (int bx = 0; bx < blocksX; ++bx) {
-      auto b = getBlock(encoded, bx, by, N, width);
-      dct2d::dct2(N, b.data());
-      setBlock(encoded, bx, by, N, width, b);
+      getBlock(encoded, bx, by, N, width, block.data());
+      dct2d::dct2(N, block.data());
+      setBlock(encoded, bx, by, N, width, block.data());
     }
   }
 
   std::vector<int> q(width * height);
+  std::array<int, QZ::blockSize * QZ::blockSize> qBlock{};
   for (int by = 0; by < blocksY; ++by) {
     for (int bx = 0; bx < blocksX; ++bx) {
-      auto b1 = getBlock(encoded, bx, by, N, width);
-      auto b2 = QZ::quantizateBlock(b1.data(), qscale);
-      setBlock(q, bx, by, N, width, b2);
+      getBlock(encoded, bx, by, N, width, block.data());
+      QZ::quantizateBlock(block.data(), qscale, qBlock.data());
+      setBlock(q, bx, by, N, width, qBlock.data());
     }
   }
 
@@ -95,18 +96,18 @@ std::vector<unsigned char> quantizeChannel(const Image &img, int channel,
   std::vector<double> dq(width * height);
   for (int by = 0; by < blocksY; ++by) {
     for (int bx = 0; bx < blocksX; ++bx) {
-      auto b1 = getBlock(q, bx, by, N, width);
-      auto b2 = QZ::dequantizateBlock(b1.data(), qscale);
-      setBlock(dq, bx, by, N, width, b2);
+      getBlock(q, bx, by, N, width, qBlock.data());
+      QZ::dequantizateBlock(qBlock.data(), qscale, block.data());
+      setBlock(dq, bx, by, N, width, block.data());
     }
   }
 
   std::vector<double> decoded(dq);
   for (int by = 0; by < blocksY; ++by) {
     for (int bx = 0; bx < blocksX; ++bx) {
-      auto b = getBlock(decoded, bx, by, N, width);
-      dct2d::idct2(N, b.data());
-      setBlock(decoded, bx, by, N, width, b);
+      getBlock(decoded, bx, by, N, width, block.data());
+      dct2d::idct2(N, block.data());
+      setBlock(decoded, bx, by, N, width, block.data());
     }
   }
   if (lapped) {
