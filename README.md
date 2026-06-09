@@ -25,4 +25,4 @@ cmake --build build
 ## Metrics
 
 - **MSE** — mean squared error on grayscale pixel vector
-- **zensim_ssimulacra2_grayscale** — perceptual similarity score (0–100, higher is better) via [zensim](https://github.com/imazen/zensim)
+- **zensim_ssimulacra2** — perceptual similarity score (0–100, higher is better) via [zensim](https://github.com/imazen/zensim)
