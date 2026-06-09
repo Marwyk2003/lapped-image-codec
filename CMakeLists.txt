@@ -26,11 +26,15 @@ corrosion_import_crate(
 
 add_executable(quantizationDemo quantizationDemo.cpp)
 add_executable(normalizedErrorDemo normalizedErrorDemo.cpp)
+add_executable(quantizedImageCodecDemo quantizedImageCodecDemo.cpp)
 
 target_include_directories(quantizationDemo PRIVATE ${stb_SOURCE_DIR})
 target_include_directories(normalizedErrorDemo PRIVATE ${stb_SOURCE_DIR})
+target_include_directories(quantizedImageCodecDemo PRIVATE ${stb_SOURCE_DIR})
 
 target_link_libraries(quantizationDemo PRIVATE zensim_ffi)
+target_link_libraries(quantizedImageCodecDemo PRIVATE zensim_ffi)
 if(UNIX)
   target_link_libraries(quantizationDemo PRIVATE m pthread dl)
+  target_link_libraries(quantizedImageCodecDemo PRIVATE m pthread dl)
 endif()

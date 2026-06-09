@@ -135,26 +135,22 @@ template <class QProvider> struct Quantizer {
   static constexpr int blockSize = QProvider::N;
   static constexpr Mat<blockSize, int> Q = QProvider::Q;
 
-  static std::vector<int> quantizateBlock(const double *data, int qscale) {
-    std::vector<int> result(blockSize * blockSize, 0);
+  static void quantizateBlock(const double *data, int qscale, int *out) {
     for (int y = 0; y < blockSize; ++y) {
       for (int x = 0; x < blockSize; ++x) {
         int val = std::round(data[y * blockSize + x] / (Q[y][x] * qscale));
-        result[y * blockSize + x] = val;
+        out[y * blockSize + x] = val;
       }
     }
-    return result;
   }
 
-  static std::vector<double> dequantizateBlock(const int *data, int qscale) {
-    std::vector<double> result(blockSize * blockSize);
+  static void dequantizateBlock(const int *data, int qscale, double *out) {
     for (int y = 0; y < blockSize; ++y) {
       for (int x = 0; x < blockSize; ++x) {
-        result[y * blockSize + x] =
+        out[y * blockSize + x] =
             static_cast<double>(data[y * blockSize + x]) * (Q[y][x] * qscale);
       }
     }
-    return result;
   }
 };
 

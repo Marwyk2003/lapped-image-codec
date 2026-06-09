@@ -31,6 +31,10 @@ struct Image {
     }
     return *this;
   }
+
+  Image(int width, int height, int channels) : width(width), height(height) {
+    this->channels.resize(channels);
+  }
 };
 
 Image loadImage(const char *path) {

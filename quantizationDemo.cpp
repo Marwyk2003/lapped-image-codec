@@ -52,20 +52,37 @@ static_assert(matricesEqual<4>(getPowerOf2<4>(), Mat<4, int>{{
 template <class QZ>
 void quantizeImage(const char *inputPath, const char *outputPath, bool lapped,
                    int qscale = 1) {
-  std::cout << "Processing " << inputPath << " -> " << outputPath << "\n";
+  std::cout << "Processing " << inputPath << " -> " << outputPath << '\n';
 
   Image img = loadImage(inputPath);
+
+  std::cout << "size: " << img.width << "x" << img.height << '\n';
+  std::cout << "channels: " << img.channels.size() << '\n';
+
+  std::vector<std::vector<unsigned char>> original(img.channels.size());
+  for (int i = 0; i < img.channels.size(); ++i) {
+    original[i] = std::vector<unsigned char>(img.channels[i].begin(),
+                                             img.channels[i].end());
+  }
+
   for (int i = 0; i < img.channels.size(); ++i) {
     auto &channel = img.channels[i];
-    std::vector<unsigned char> original(channel.begin(), channel.end());
     channel = quantizeChannel<QZ>(img, i, lapped, qscale);
 
-    std::cout << "size: " << img.width << "x" << img.height << "\n";
-    std::cout << "MSE: " << mse(original, channel) << "\n";
+    std::cout << "channel " << i << " MSE: " << mse(original[i], channel)
+              << '\n';
+  }
+
+  if (img.channels.size() == 1) {
     std::cout << "SSIMULACRA2: "
-              << zensim_ssimulacra2_grayscale(original, channel, img.width,
-                                              img.height)
-              << "\n";
+              << zensim_ssimulacra2_grayscale(original[0], img.channels[0],
+                                              img.width, img.height)
+              << '\n';
+  } else if (img.channels.size() == 3) {
+    std::cout << "SSIMULACRA2: "
+              << zensim_ssimulacra2_rgb(original, img.channels, img.width,
+                                        img.height)
+              << '\n';
   }
 
   saveImage(outputPath, img);
