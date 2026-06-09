@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+// tests of quantization matrices
 template <int N, class T>
 consteval bool matricesEqual(const Mat<N, T> &a, const Mat<N, T> &b) {
   for (int y = 0; y < N; ++y) {
@@ -46,33 +47,36 @@ static_assert(matricesEqual<4>(getPowerOf2<4>(), Mat<4, int>{{
                                                      {{4, 4, 16, 32}},
                                                  }}));
 
+// end of tests
+
 template <class QZ>
-void quantizeImage(const char *inputPath, const char *outputPath, bool lapped) {
+void quantizeImage(const char *inputPath, const char *outputPath, bool lapped,
+                   int qscale = 1) {
   std::cout << "Processing " << inputPath << " -> " << outputPath << "\n";
 
   Image img = loadImage(inputPath);
   for (int i = 0; i < img.channels.size(); ++i) {
     auto &channel = img.channels[i];
     std::vector<unsigned char> original(channel.begin(), channel.end());
-    channel = quantizeChannel<QZ>(img, i, lapped);
+    channel = quantizeChannel<QZ>(img, i, lapped, qscale);
 
-    std::cout << "  size: " << img.width << "x" << img.height << "\n";
-    std::cout << "  MSE: " << mse(original, channel) << "\n";
-    std::cout << "  SSIMULACRA2: "
+    std::cout << "size: " << img.width << "x" << img.height << "\n";
+    std::cout << "MSE: " << mse(original, channel) << "\n";
+    std::cout << "SSIMULACRA2: "
               << zensim_ssimulacra2_grayscale(original, channel, img.width,
                                               img.height)
               << "\n";
   }
 
-  saveGrayscaleImage(outputPath, img);
+  saveImage(outputPath, img);
 }
 
 int main() {
   const char *input = "images/panda.jpg";
 
-  quantizeImage<Quantizer8Base>(input, "output/quantized_block.png", false);
+  quantizeImage<Quantizer8Base>(input, "output/quantized_block.png", false, 10);
   std::cout << "---------------------------------" << "\n";
-  quantizeImage<Quantizer8Base>(input, "output/quantized_lapped.png", true);
+  quantizeImage<Quantizer8Base>(input, "output/quantized_lapped.png", true, 7);
 
   return 0;
 }

@@ -25,8 +25,10 @@ corrosion_import_crate(
 )
 
 add_executable(quantizationDemo quantizationDemo.cpp)
+add_executable(normalizedErrorDemo normalizedErrorDemo.cpp)
 
 target_include_directories(quantizationDemo PRIVATE ${stb_SOURCE_DIR})
+target_include_directories(normalizedErrorDemo PRIVATE ${stb_SOURCE_DIR})
 
 target_link_libraries(quantizationDemo PRIVATE zensim_ffi)
 if(UNIX)

@@ -8,12 +8,12 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 struct Image {
   std::vector<std::vector<unsigned char>> channels;
   int width = 0;
   int height = 0;
-
 
   Image() = default;
   Image(const Image &) = delete;
@@ -56,7 +56,7 @@ Image loadImage(const char *path) {
   return img;
 }
 
-void saveGrayscaleImage(const char *path, Image &img) {
+void saveImage(const char *path, const Image &img) {
   int channels = img.channels.size();
 
   std::vector<unsigned char> flattend(img.width * img.height * channels, 0);

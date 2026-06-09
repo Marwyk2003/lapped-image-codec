@@ -2,7 +2,6 @@
 
 #include <array>
 #include <cmath>
-#include <iostream>
 #include <vector>
 
 template <int N, class T = int> using Mat = std::array<std::array<T, N>, N>;
@@ -132,10 +131,11 @@ struct Q16Pow2 {
 };
 
 template <class QProvider> struct Quantizer {
+
   static constexpr int blockSize = QProvider::N;
   static constexpr Mat<blockSize, int> Q = QProvider::Q;
 
-  static std::vector<int> quantizateBlock(const double *data, int qscale=1) {
+  static std::vector<int> quantizateBlock(const double *data, int qscale) {
     std::vector<int> result(blockSize * blockSize, 0);
     for (int y = 0; y < blockSize; ++y) {
       for (int x = 0; x < blockSize; ++x) {
@@ -146,7 +146,7 @@ template <class QProvider> struct Quantizer {
     return result;
   }
 
-  static std::vector<double> dequantizateBlock(const int *data, int qscale=1) {
+  static std::vector<double> dequantizateBlock(const int *data, int qscale) {
     std::vector<double> result(blockSize * blockSize);
     for (int y = 0; y < blockSize; ++y) {
       for (int x = 0; x < blockSize; ++x) {
