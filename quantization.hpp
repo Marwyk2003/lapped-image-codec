@@ -2,7 +2,6 @@
 
 #include <array>
 #include <cmath>
-#include <vector>
 
 template <int N, class T = int> using Mat = std::array<std::array<T, N>, N>;
 

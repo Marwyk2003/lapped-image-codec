@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <fstream>
 #include <stdexcept>
 #include <vector>
@@ -29,7 +30,7 @@ template <class QZ, bool Lapped, int Strength> struct QuantizedImageCodec {
   static void buildMask(const int *block,
                         std::array<uint64_t, maskWordCount()> &mask) {
     mask.fill(0);
-    for (int i = 0; i < N * N; ++i) {
+    for (int i = 1; i < N * N; ++i) {
       if (block[i] != 0)
         setMaskBit(mask, i);
     }
@@ -43,29 +44,72 @@ template <class QZ, bool Lapped, int Strength> struct QuantizedImageCodec {
     is.read(reinterpret_cast<char *>(&value), sizeof(T));
   }
 
-  static void writeBlock(std::ostream &os, const int *block) {
-    std::array<uint64_t, maskWordCount()> mask{};
-    buildMask(block, mask);
+  static uint8_t valueWidth(int minV, int maxV) {
+    if (minV >= -128 && maxV <= 127)
+      return 1;
+    if (minV >= -32768 && maxV <= 32767)
+      return 2;
+    return 4;
+  }
 
-    for (uint64_t word : mask)
-      writeData(os, word);
-
-    for (int i = 0; i < N * N; ++i) {
-      if (block[i] != 0)
-        writeData(os, block[i]);
+  static void writeValue(std::ostream &os, int v, uint8_t dataSize) {
+    switch (dataSize) {
+    case 1: {
+      int8_t x = static_cast<int8_t>(v);
+      writeData(os, x);
+      break;
+    }
+    case 2: {
+      int16_t x = static_cast<int16_t>(v);
+      writeData(os, x);
+      break;
+    }
+    default: {
+      int32_t x = v;
+      writeData(os, x);
+      break;
+    }
     }
   }
 
-  static void readBlock(std::istream &is, int *block) {
-    std::array<uint64_t, maskWordCount()> mask{};
+  static int readValue(std::istream &is, uint8_t dataSize) {
+    switch (dataSize) {
+    case 1: {
+      int8_t x;
+      readData(is, x);
+      return x;
+    }
+    case 2: {
+      int16_t x;
+      readData(is, x);
+      return x;
+    }
+    default: {
+      int32_t x;
+      readData(is, x);
+      return x;
+    }
+    }
+  }
 
+  static void writeBlock(std::ostream &os, const int *block, uint8_t dataSize) {
+    std::array<uint64_t, maskWordCount()> mask{};
+    buildMask(block, mask);
+    for (uint64_t word : mask)
+      writeData(os, word);
+    for (int i = 1; i < N * N; ++i) {
+      if (block[i] != 0)
+        writeValue(os, block[i], dataSize);
+    }
+  }
+
+  static void readBlock(std::istream &is, int *block, uint8_t dataSize) {
+    std::array<uint64_t, maskWordCount()> mask{};
     for (uint64_t &word : mask)
       readData(is, word);
-
-    std::fill(block, block + N * N, 0);
-    for (int i = 0; i < N * N; ++i) {
+    for (int i = 1; i < N * N; ++i) {
       if (isMaskBitSet(mask, i))
-        readData(is, block[i]);
+        block[i] = readValue(is, dataSize);
     }
   }
 
@@ -102,20 +146,48 @@ template <class QZ, bool Lapped, int Strength> struct QuantizedImageCodec {
     int blocksY = (imgHeight + N - 1) / N;
     int width = blocksX * N;
     int height = blocksY * N;
+    int blockCount = blocksX * blocksY;
 
     if constexpr (Lapped)
       prefilter2d(width, height, N, rawData.data());
 
+    std::vector<std::array<int, N * N>> blocks(blockCount);
     std::array<double, N * N> block{};
     std::array<int, N * N> q{};
+    int bi = 0;
     for (int by = 0; by < blocksY; ++by) {
       for (int bx = 0; bx < blocksX; ++bx) {
         getBlock(rawData, bx, by, N, width, block.data());
         dct2d::dct2(N, block.data());
         QZ::quantizateBlock(block.data(), Strength, q.data());
-        writeBlock(os, q.data());
+        blocks[bi++] = q;
       }
     }
+
+    int32_t dcRef = blocks[0][0];
+    std::vector<int> dcDiffs(blockCount);
+    int minV = 0, maxV = 0;
+    for (int i = 0; i < blockCount; ++i) {
+      dcDiffs[i] = blocks[i][0] - dcRef;
+      minV = std::min(minV, dcDiffs[i]);
+      maxV = std::max(maxV, dcDiffs[i]);
+    }
+    for (const auto &b : blocks) {
+      for (int i = 1; i < N * N; ++i) {
+        if (b[i] != 0) {
+          minV = std::min(minV, b[i]);
+          maxV = std::max(maxV, b[i]);
+        }
+      }
+    }
+
+    uint8_t dataSize = valueWidth(minV, maxV);
+    writeData(os, dcRef);
+    writeData(os, dataSize);
+    for (int d : dcDiffs)
+      writeValue(os, d, dataSize);
+    for (const auto &b : blocks)
+      writeBlock(os, b.data(), dataSize);
   }
 
   static std::vector<unsigned char> decodeChannel(std::istream &is,
@@ -124,15 +196,28 @@ template <class QZ, bool Lapped, int Strength> struct QuantizedImageCodec {
     int blocksY = (imgHeight + N - 1) / N;
     int width = blocksX * N;
     int height = blocksY * N;
+    int blockCount = blocksX * blocksY;
+
+    int32_t dcRef;
+    uint8_t dataSize;
+    readData(is, dcRef);
+    readData(is, dataSize);
 
     std::vector<int> coefficientsData(width * height, 0);
     std::array<int, N * N> block{};
     std::array<double, N * N> restoredBlock{};
-    for (int by = 0; by < blocksY; ++by) {
-      for (int bx = 0; bx < blocksX; ++bx) {
-        readBlock(is, block.data());
-        setBlock(coefficientsData, bx, by, N, width, block.data());
-      }
+
+    std::vector<int> dcDiffs(blockCount);
+    for (int i = 0; i < blockCount; ++i)
+      dcDiffs[i] = readValue(is, dataSize);
+
+    for (int i = 0; i < blockCount; ++i) {
+      std::fill(block.begin(), block.end(), 0);
+      block[0] = dcRef + dcDiffs[i];
+      readBlock(is, block.data(), dataSize);
+      int bx = i % blocksX;
+      int by = i / blocksX;
+      setBlock(coefficientsData, bx, by, N, width, block.data());
     }
 
     std::vector<double> decodedData(width * height);
