@@ -80,52 +80,55 @@ Summary runCodecDemo(const string &example, const string &ext = ".jpg") {
   };
 }
 
+int constexpr WEAK = 5;
+int constexpr MEDIUM = 10;
+int constexpr STRONG = 50;
+
 int main() {
   vector<string> examples = {"barbara", "panda_small"};
-  vector<int> strengths = {1, 10, 100};
 
   vector<Summary> summary;
 
   /// BLOCK
   for (auto &e : examples) {
     /// BLOCK
-    summary.push_back(runCodecDemo<Quantizer8Base, false, 1>(e));
-    summary.push_back(runCodecDemo<Quantizer16Pow2, false, 1>(e));
-    summary.push_back(runCodecDemo<Quantizer16Tiled, false, 1>(e));
-    summary.push_back(runCodecDemo<Quantizer16Upscaled, false, 1>(e));
+    summary.push_back(runCodecDemo<Quantizer8Base, false, WEAK>(e));
+    summary.push_back(runCodecDemo<Quantizer16Pow2, false, WEAK>(e));
+    summary.push_back(runCodecDemo<Quantizer16Tiled, false, WEAK>(e));
+    summary.push_back(runCodecDemo<Quantizer16Upscaled, false, WEAK>(e));
 
-    summary.push_back(runCodecDemo<Quantizer8Base, false, 10>(e));
-    summary.push_back(runCodecDemo<Quantizer16Pow2, false, 10>(e));
-    summary.push_back(runCodecDemo<Quantizer16Tiled, false, 10>(e));
-    summary.push_back(runCodecDemo<Quantizer16Upscaled, false, 10>(e));
+    summary.push_back(runCodecDemo<Quantizer8Base, false, MEDIUM>(e));
+    summary.push_back(runCodecDemo<Quantizer16Pow2, false, MEDIUM>(e));
+    summary.push_back(runCodecDemo<Quantizer16Tiled, false, MEDIUM>(e));
+    summary.push_back(runCodecDemo<Quantizer16Upscaled, false, MEDIUM>(e));
 
-    summary.push_back(runCodecDemo<Quantizer8Base, false, 100>(e));
-    summary.push_back(runCodecDemo<Quantizer16Pow2, false, 100>(e));
-    summary.push_back(runCodecDemo<Quantizer16Tiled, false, 100>(e));
-    summary.push_back(runCodecDemo<Quantizer16Upscaled, false, 100>(e));
+    summary.push_back(runCodecDemo<Quantizer8Base, false, STRONG>(e));
+    summary.push_back(runCodecDemo<Quantizer16Pow2, false, STRONG>(e));
+    summary.push_back(runCodecDemo<Quantizer16Tiled, false, STRONG>(e));
+    summary.push_back(runCodecDemo<Quantizer16Upscaled, false, STRONG>(e));
 
     /// LAPPED
-    summary.push_back(runCodecDemo<Quantizer8Base, true, 1>(e));
-    summary.push_back(runCodecDemo<Quantizer16Pow2, true, 1>(e));
-    summary.push_back(runCodecDemo<Quantizer16Tiled, true, 1>(e));
-    summary.push_back(runCodecDemo<Quantizer16Upscaled, true, 1>(e));
+    summary.push_back(runCodecDemo<Quantizer8Base, true, WEAK>(e));
+    summary.push_back(runCodecDemo<Quantizer16Pow2, true, WEAK>(e));
+    summary.push_back(runCodecDemo<Quantizer16Tiled, true, WEAK>(e));
+    summary.push_back(runCodecDemo<Quantizer16Upscaled, true, WEAK>(e));
 
-    summary.push_back(runCodecDemo<Quantizer8Base, true, 10>(e));
-    summary.push_back(runCodecDemo<Quantizer16Pow2, true, 10>(e));
-    summary.push_back(runCodecDemo<Quantizer16Tiled, true, 10>(e));
-    summary.push_back(runCodecDemo<Quantizer16Upscaled, true, 10>(e));
+    summary.push_back(runCodecDemo<Quantizer8Base, true, MEDIUM>(e));
+    summary.push_back(runCodecDemo<Quantizer16Pow2, true, MEDIUM>(e));
+    summary.push_back(runCodecDemo<Quantizer16Tiled, true, MEDIUM>(e));
+    summary.push_back(runCodecDemo<Quantizer16Upscaled, true, MEDIUM>(e));
 
-    summary.push_back(runCodecDemo<Quantizer8Base, true, 100>(e));
-    summary.push_back(runCodecDemo<Quantizer16Pow2, true, 100>(e));
-    summary.push_back(runCodecDemo<Quantizer16Tiled, true, 100>(e));
-    summary.push_back(runCodecDemo<Quantizer16Upscaled, true, 100>(e));
+    summary.push_back(runCodecDemo<Quantizer8Base, true, STRONG>(e));
+    summary.push_back(runCodecDemo<Quantizer16Pow2, true, STRONG>(e));
+    summary.push_back(runCodecDemo<Quantizer16Tiled, true, STRONG>(e));
+    summary.push_back(runCodecDemo<Quantizer16Upscaled, true, STRONG>(e));
   }
 
   cout << "\n" << setfill('=') << setw(100) << "" << endl;
   cout << setfill(' ');
   cout << left << setw(15) << "Image" << setw(10) << "Type" << setw(10)
        << "Strength" << setw(25) << "Quantizer" << setw(12) << "MSE Avg"
-       << setw(12) << "SSIM2" << setw(12) << "Ratio" << endl;
+       << setw(12) << "SSIM2" << setw(12) << "Compression" << endl;
   cout << setw(100) << setfill('-') << "" << setfill(' ') << endl;
 
   for (const auto &s : summary) {
