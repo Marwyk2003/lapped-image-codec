@@ -112,27 +112,32 @@ consteval Mat<N * Factor, T> upsample(const Mat<N, T> &q) {
 struct Q8Base {
   static constexpr int N = 8;
   static constexpr Mat<N, int> Q = getBase8x8();
+  static constexpr const char* name = "Q8Base";
 };
 
 struct Q16TiledFromQ8Base {
   static constexpr int N = 16;
   static constexpr Mat<N, int> Q = tile<8, 2>(getBase8x8());
+  static constexpr const char* name = "Q16TiledFromQ8Base";
 };
 
 struct Q16UpscaledFromQ8Base {
   static constexpr int N = 16;
   static constexpr Mat<N, int> Q = upsample<8, 2>(getBase8x8());
+  static constexpr const char* name = "Q16UpscaledFromQ8Base";
 };
 
 struct Q16Pow2 {
   static constexpr int N = 16;
   static constexpr Mat<N, int> Q = getPowerOf2<N>();
+  static constexpr const char* name = "Q16Pow2";
 };
 
 template <class QProvider> struct Quantizer {
 
   static constexpr int blockSize = QProvider::N;
   static constexpr Mat<blockSize, int> Q = QProvider::Q;
+  static constexpr const char* name = QProvider::name;
 
   static void quantizateBlock(const double *data, int qscale, int *out) {
     for (int y = 0; y < blockSize; ++y) {
