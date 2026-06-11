@@ -16,7 +16,7 @@ cmake --build build
 ## Run quantization demo
 
 ```bash
-./build/quantizationDemo
+./build/lappedImageCodecDemo
 ```
 
 > [!NOTE]
@@ -25,4 +25,8 @@ cmake --build build
 ## Metrics
 
 - **MSE** — mean squared error on grayscale pixel vector
-- **zensim_ssimulacra2** — perceptual similarity score (0–100, higher is better) via [zensim](https://github.com/imazen/zensim)
+- **zensim_ssimulacra2** — perceptual similarity score ([-inf;100], higher is better) via [zensim](https://github.com/imazen/zensim)
+
+## Summary
+
+In the `summaries` directory you can find a comparison of block and lapped transform and different quantization matrices. 

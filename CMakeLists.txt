@@ -24,21 +24,13 @@ corrosion_import_crate(
   MANIFEST_PATH ${CMAKE_SOURCE_DIR}/third_party/zensim_ffi/Cargo.toml
 )
 
-add_executable(quantizationDemo quantizationDemo.cpp)
 add_executable(normalizedErrorDemo normalizedErrorDemo.cpp)
-add_executable(quantizedImageCodecDemo quantizedImageCodecDemo.cpp)
 add_executable(lappedImageCodecDemo main.cpp)
 
-target_include_directories(quantizationDemo PRIVATE ${stb_SOURCE_DIR})
 target_include_directories(normalizedErrorDemo PRIVATE ${stb_SOURCE_DIR})
-target_include_directories(quantizedImageCodecDemo PRIVATE ${stb_SOURCE_DIR})
 target_include_directories(lappedImageCodecDemo PRIVATE ${stb_SOURCE_DIR})
 
-target_link_libraries(quantizationDemo PRIVATE zensim_ffi)
-target_link_libraries(quantizedImageCodecDemo PRIVATE zensim_ffi)
 target_link_libraries(lappedImageCodecDemo PRIVATE zensim_ffi)
 if(UNIX)
-  target_link_libraries(quantizationDemo PRIVATE m pthread dl)
-  target_link_libraries(quantizedImageCodecDemo PRIVATE m pthread dl)
   target_link_libraries(lappedImageCodecDemo PRIVATE m pthread dl)
 endif()
